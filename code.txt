@@ -1,0 +1,135 @@
+#include <SoftwareSerial.h>
+#include <Keypad.h>
+
+SoftwareSerial mySerial(4, 5); //RX = 4 , TX = 5......
+
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+byte rowPins[ROWS] = {13, 12, 11, 10};
+byte colPins[COLS] = {9, 8, 7, 6};
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+const char password[5] = "1234";
+char enteredPassword[5];
+
+const char otp[5] = "8086";
+char enteredotp[5];
+byte index = 0;
+byte i=0;
+int buzzer = 2;
+int g1=3;
+
+
+
+void setup() 
+{
+  mySerial.begin(9600);
+  Serial.begin(9600);                            
+  pinMode(buzzer, OUTPUT);
+  pinMode(g1, OUTPUT);
+  digitalWrite(buzzer,LOW); 
+  digitalWrite(g1,LOW);
+}
+
+void loop()
+{
+
+//keypad_1();
+  
+if (Serial.available()>0) 
+{
+    String data=Serial.readString();
+    data.trim();
+    //Serial.println(data);
+    
+    if(data=="a")
+     {
+       digitalWrite(g1,HIGH);
+     }
+     
+    if(data=="b")
+     {
+      
+      digitalWrite(buzzer,HIGH);
+      delay(1000);
+      digitalWrite(buzzer,LOW);
+      delay(500);
+             Serial.println("AT+CMGF=1");
+             delay(1000);  
+             Serial.println("AT+CMGS=\"+919074822535\"\r");
+             delay(1000);
+             Serial.println("your password is 8086");
+             delay(100);
+             Serial.println((char)26);
+             delay(1000);
+     }
+     
+    if(data=="26009FF6D49B")
+     {
+        Serial.println("Enter ATM PIN");   
+     }
+ 
+   }
+   keypad_1();
+ }
+
+ void keypad_1()
+{
+    char key = keypad.getKey();
+
+  if (key != NO_KEY)
+  {
+    if (key == '#') 
+    {
+      if (strcmp(enteredPassword, password) == 0) {
+        Serial.println("Access granted");
+        Serial.println("Withdraw Cash");
+      } else {
+        Serial.println("Access denied");
+        Serial.println("Re enter password");
+      }
+      index = 0;
+      memset(enteredPassword, 0, sizeof(enteredPassword));
+    } 
+
+
+        if (key == '*') 
+    {
+      if (strcmp(enteredotp, otp) == 0) {
+        Serial.println("Valid OTP !");
+        Serial.println("Insert Card !");;
+      } else {
+         Serial.println("Invalid OTP !");
+         Serial.println("Rey Trt !");
+      }
+      index = 0;
+      memset(enteredotp, 0, sizeof(enteredotp));
+    } 
+    
+    else 
+    {
+      Serial.println(key);
+      enteredPassword[index] = key;
+      enteredotp[index] = key;
+      index++;
+    }
+  }
+}
+
+//void gsm()
+//{
+//     mySerial.println("AT+CMGF=1");    //Sets the GSM Module in Text Mode
+//     delay(1000);  // Delay of 1 second
+//     mySerial.println("AT+CMGS=\"+919074822535\"\r"); // Replace x with mobile number
+//     delay(1000);
+//     mySerial.println("your otp is 8086");// The SMS text you want to send
+//     delay(100);
+//     mySerial.println((char)26);// ASCII code of CTRL+Z for saying the end of sms to  the module 
+//      delay(1000); 
+//}
